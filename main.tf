@@ -6,6 +6,10 @@ module "inter_vpc" {
 #     source     = "./modules/iam_role"
 # }
 
+module "route_tables" {
+    source     = "./modules/route_tables"
+}
+
 module "aws_ec2" {
     source     = "./modules/aws_ec2"
 }

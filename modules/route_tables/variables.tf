@@ -3,19 +3,19 @@ module "vpc" {
 }
 variable "vpc_id" {
   type    = string
-  default = module.vpc.vpc_id
+  default = "vpc-03c07bf9acf7f3e5a"
 }
 variable "gateway_id" {
   type    = string
-  default = module.vpc.igw_id
+  default = "igw-0bcd56c9d11fc662a"
 }
 
 variable "intern_public_subnet" {
   type    = string
-  default = module.vpc.public_subnet_id
+  default = "subnet-09a313e72aa2e2dd2"
 }
 
 variable "intern_private_subnet" {
   type    = string
-  default = module.vpc.private_subnet_id
+  default = "subnet-08cb7ba68adfcb996"
 }
