@@ -1,6 +1,4 @@
-module "vpc" {
-  source = "./modules/vpc"
-}
+
 variable "vpc_id" {
   type    = string
   default = "vpc-03c07bf9acf7f3e5a"
