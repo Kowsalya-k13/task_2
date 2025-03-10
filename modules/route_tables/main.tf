@@ -44,3 +44,25 @@ resource "aws_nat_gateway" "internNat" {
         Created_On  = "March-10"
     }
 }
+
+#Private route table 
+resource "aws_route_table" "pri-RT" {
+    vpc_id =  var.vpc_id
+    route {
+        cidr_block = "0.0.0.0/0"
+        nat_gateway_id = aws_nat_gateway.internNat.id
+    }
+    tags = {
+        Name        = "InternPrivateRoute"
+        Project     = "Terraform-Task"
+        Owner       = "Kowsalya"
+        Purpose     = "Private Route table Created for Task"
+        Created_On  = "March-10"
+    }
+}
+
+#associating private route with private subnet 
+resource "aws_route_table_association" "private_association" {
+    subnet_id = var.intern_private_subnet
+    route_table_id = aws_route_table.pri-RT.id
+}
