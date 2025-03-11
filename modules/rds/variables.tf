@@ -6,7 +6,7 @@ variable "subnet_id" {
 
 variable "rds_kms_key_id" {
   type = string
-  default = "38861bc3-f045-4fc6-9253-aa67ad4637b4"     
+  default = "arn:aws:kms:us-west-2:130759691668:key/38861bc3-f045-4fc6-9253-aa67ad4637b4"     
   description = "KMS key id for RDS"
 }
 
@@ -19,4 +19,10 @@ variable "db_password" {
   type = string
   default = "kowsi@rds"     
   description = "Password for DB"
+}
+
+variable "rds_security_group" {
+  type = string
+  default = "sg-0ed3bdbbdeb7e7945"     
+  description = "Existing Security group for RDS"
 }

@@ -21,7 +21,7 @@ resource "aws_db_instance" "low_cost_rds" {
   username            = var.db_username
   password            = var.db_password
   db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
-  vpc_security_group_ids = [aws_security_group.rds_sg.id]
+  vpc_security_group_ids = [var.rds_security_group]
 
   multi_az           = false 
   publicly_accessible = false

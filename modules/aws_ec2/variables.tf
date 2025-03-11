@@ -29,7 +29,7 @@ variable "subnet_id" {
 }
 variable "kms_key_id" {
   type = string
-  default = "a711e547-2750-4ae2-b36a-e49ee07abfdf"     
+  default = "arn:aws:kms:us-west-2:130759691668:key/a711e547-2750-4ae2-b36a-e49ee07abfdf"     
   description = "KMS key id for EBS"
 }
 
