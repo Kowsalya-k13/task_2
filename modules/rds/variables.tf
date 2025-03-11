@@ -17,7 +17,7 @@ variable "db_username" {
 }
 variable "db_password" {
   type = string
-  default = "kowsi@rds"     
+  default = "kowsirds!"     
   description = "Password for DB"
 }
 variable "vpc_id" {
