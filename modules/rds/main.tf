@@ -1,5 +1,5 @@
 #Security_group Creation for rds
-resource "aws_security_group" "rds" {
+resource "aws_security_group" "intern_rds" {
   name        = "Intern-RDS-Security-Group"
   description = "Allow inbound traffic on port 3306 Mysql Port"
   vpc_id = var.vpc_id
@@ -50,7 +50,7 @@ resource "aws_db_instance" "low_cost_rds" {
   username            = var.db_username
   password            = var.db_password
   db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
-  vpc_security_group_ids = []
+  vpc_security_group_ids = [aws_security_group.intern_rds]
 
   multi_az           = false 
   publicly_accessible = false
