@@ -10,14 +10,6 @@ resource "aws_security_group" "intern_sg" {
     protocol    = "tcp"
     cidr_blocks = ["106.222.197.92/32"] #My IP
   }
-
-  ingress {
-    from_port   = 3306  
-    to_port     = 3306
-    protocol    = "tcp"
-    #cidr_blocks = ["12.0.0.0/16"] 
-    security_groups = [aws_security_group.intern_sg.id]
-  }
   
   egress {
     from_port   = 0

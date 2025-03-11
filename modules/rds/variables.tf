@@ -20,9 +20,7 @@ variable "db_password" {
   default = "kowsi@rds"     
   description = "Password for DB"
 }
-
-variable "rds_security_group" {
-  type = string
-  default = "sg-0ed3bdbbdeb7e7945"     
-  description = "Existing Security group for RDS"
+variable "vpc_id" {
+  type    = string
+  default = "vpc-03c07bf9acf7f3e5a"
 }
