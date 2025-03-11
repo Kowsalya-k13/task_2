@@ -10,6 +10,13 @@ resource "aws_security_group" "intern_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"] 
   }
+
+  ingress {
+    from_port   = 3306  
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["12.0.0.0/16"] 
+  }
   
   egress {
     from_port   = 0
@@ -27,7 +34,7 @@ resource "aws_security_group" "intern_sg" {
 
   }
 }
-
+#EC2 instance
 resource "aws_instance" "ec2inPublic" {
     ami = var.ami
     instance_type = var.instance_type
