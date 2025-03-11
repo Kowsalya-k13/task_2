@@ -23,4 +23,11 @@ variable "db_password" {
 variable "vpc_id" {
   type    = string
   default = "vpc-03c07bf9acf7f3e5a"
+  description = "VPC ID I created"
+}
+
+variable "private_rds_cidr" {
+  type    = string
+  default = "12.0.5.0/24"
+  description = "cidr block for private subnet 2 for RDS"
 }
