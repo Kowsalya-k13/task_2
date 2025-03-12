@@ -49,4 +49,9 @@ resource "aws_instance" "ec2inPublic" {
         Purpose     = "Creating instance inside Public Subnet as instructed"
         Created_On  = "March-11"
     }
+    
 }
+resource "aws_eip_association" "eip_attach" {
+  instance_id   = aws_instance.ec2inPublic.id
+  allocation_id = "eipalloc-00f0115b601e756e5"  
+} 
