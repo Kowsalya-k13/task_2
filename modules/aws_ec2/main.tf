@@ -27,6 +27,12 @@ resource "aws_security_group" "intern_sg" {
 
   }
 }
+#S3 Readonly access role to EC2
+resource "aws_iam_instance_profile" "s3_readonly_profile" {
+  name = "kowsalya-s3-ec2-profile"
+  role = "KowsalyaS3ReadOnlyRole"  
+}
+
 #EC2 instance
 resource "aws_instance" "ec2inPublic" {
     ami = var.ami
@@ -34,6 +40,8 @@ resource "aws_instance" "ec2inPublic" {
     key_name = var.key_pair
     subnet_id = var.subnet_id
     vpc_security_group_ids  = [aws_security_group.intern_sg.id]
+
+    iam_instance_profile = aws_iam_instance_profile.s3_readonly_profile.name 
 
     root_block_device {
         volume_size           = 8
