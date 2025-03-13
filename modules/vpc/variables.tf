@@ -7,6 +7,11 @@ variable "public_cidr" {
   type = string
   default = "12.0.6.0/24"
 }
+
+variable "public_cidr_2" {
+  type = string
+  default = "12.0.9.0/24"
+}
 variable "private_cidr" {
   type = string
   default = "12.0.8.0/24"

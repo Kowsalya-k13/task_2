@@ -14,6 +14,6 @@ module "aws_rds" {
     source     = "./modules/rds"
 }
 
-module "iam_role" {
-    source     = "./modules/iam_role"
+module "alb_asg" {
+    source     = "./modules/alb_asg"
 }
