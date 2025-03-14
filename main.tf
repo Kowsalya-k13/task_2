@@ -17,3 +17,6 @@ module "aws_rds" {
 module "alb_asg" {
     source     = "./modules/alb_asg"
 }
+module "lock_tf" {
+    source     = "./modules/lock_tf"
+}
