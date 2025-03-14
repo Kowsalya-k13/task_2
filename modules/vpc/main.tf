@@ -48,3 +48,20 @@ resource "aws_internet_gateway" "intern-igw" {
     Created_On  = "March-10"
   }
 }
+
+
+#ALB need atleast 2 public subnets and I do have 1 so creating the other
+resource "aws_subnet" "public_subnet2" {
+    vpc_id                  = aws_vpc.intern_vpc.id
+    cidr_block              = var.public_cidr_2
+    map_public_ip_on_launch = true
+    availability_zone       = "us-west-2a" 
+
+    tags = {
+        Name        = "Kowsalya_Public_Subnet_2"
+        Project     = "Terraform-Task"
+        Owner       = "Kowsalya"
+        Purpose     = "Public Subnet Created for ALB in a diff zone"
+        Created_On  = "March-13"
+    }
+}
