@@ -142,8 +142,100 @@ resource "aws_autoscaling_group" "asg" {
 
   target_group_arns = [aws_lb_target_group.asg_tg.arn]
   health_check_type = "EC2"
-
-
   
 }
+#Policies for scalling up and scalling down 
+resource "aws_autoscaling_policy" "kowsalya_scale_up" {
+  name                   = "kowsalya-scale-up-policy"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown              = 300
+  autoscaling_group_name = aws_autoscaling_group.asg.id
+}
+resource "aws_autoscaling_policy" "kowsalya_scale_down" {
+  name                   = "kowsalya-scale-down-policy"
+  scaling_adjustment     = -1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown              = 300
+  autoscaling_group_name = aws_autoscaling_group.asg.name
+}
+
+#Cloud Watch Alarm for >70% CPU 
+resource "aws_cloudwatch_metric_alarm" "scale_up_alarm" {
+  alarm_name          = "scale-up-alarm"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 70
+  alarm_description   = "Monitors and Scale up when CPU utilization exceeds 70%"
+  actions_enabled     = true
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.asg.name
+  }
+
+  alarm_actions = [aws_autoscaling_policy.kowsalya_scale_up.arn]
+}
+#Cloud Watch Alarm for <30% CPU 
+resource "aws_cloudwatch_metric_alarm" "scale_down_alarm" {
+  alarm_name          = "scale-down-alarm"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 30
+  alarm_description   = "Monitors and Scale down when CPU utilization is below 30%"
+  actions_enabled     = true
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.asg.name
+  }
+
+  alarm_actions = [aws_autoscaling_policy.kowsalya_scale_down.arn]
+}
+
+#SNS Alerts
+resource "aws_sns_topic" "kowsalya_alerts" {
+  name = "kowsalya-alerts"
+}
+#For email alerts
+resource "aws_sns_topic_subscription" "notify_1" {
+  topic_arn = aws_sns_topic.kowsalya_alerts.arn
+  protocol  = "email"
+  endpoint  = "kowsalya.kumar@batonsystems.com"  
+}
+
+resource "aws_sns_topic_subscription" "notify_2" {
+  topic_arn = aws_sns_topic.kowsalya_alerts.arn
+  protocol  = "email"
+  endpoint  = "durga.sathyanps@batonsystems.com"  
+}
+# SNS to CloudWatch Alarms
+resource "aws_cloudwatch_metric_alarm" "cpu_alert_alarm" {
+  alarm_name          = "cpu-utilization-alert"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 70
+  alarm_description   = "Trigger SNS alert if CPU exceeds 70%"
+  actions_enabled     = true
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.asg.name
+  }
+
+  alarm_actions = [aws_sns_topic.kowsalya_alerts.arn]
+}
+
+
+
+
 
