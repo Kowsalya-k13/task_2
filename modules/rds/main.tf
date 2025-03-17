@@ -2,19 +2,19 @@
 resource "aws_subnet" "private_subnet_2_RDS" {
     vpc_id     = var.vpc_id
     cidr_block = var.private_rds_cidr
-    availability_zone = "us-west-2a"
+    availability_zone = var.availability_zone
 
     tags = {
-        Name        = "Kowsalya_Private_Subnet_RDS"
+        Name        = "Kowsalya_Private_Subnet_2"
         Project     = "Terraform-Task"
         Owner       = "Kowsalya"
         Purpose     = "Private Subnet Created in different AZ for RDS group"
-        Created_On  = "March-11"
+        Created_On  = formatdate("YYYY-MM-DD", timestamp())
     }
 }
 
 #Security_group Creation for rds
-resource "aws_security_group" "intern_rds" {
+resource "aws_security_group" "RDS_security_group" {
   name        = "Intern-RDS-Security-Group"
   description = "Allow inbound traffic on port 3306 Mysql Port"
   vpc_id = var.vpc_id
@@ -38,21 +38,21 @@ resource "aws_security_group" "intern_rds" {
     Project     = "Terraform-Task"
     Owner       = "Kowsalya"
     Purpose     = "Security Group Created for RDS"
-    Created_On  = "March-11"
+    Created_On  = formatdate("YYYY-MM-DD", timestamp())
   }
 }
 
 #We need subnet group for RDS 
 resource "aws_db_subnet_group" "rds_subnet_group" {
   name       = "intern-rds-subnet-group"
-  subnet_ids = [var.subnet_id,aws_subnet.private_subnet_2_RDS.id]
+  subnet_ids = [var.private_subnet_id,aws_subnet.private_subnet_2_RDS.id]
 
   tags = {
     Name = "Intern RDS Subnet Group"
     Project     = "Terraform-Task"
     Owner       = "Kowsalya"
     Purpose     = "Consist of subnets from different AZs for RDS"
-    Created_On  = "March-11"
+    Created_On  = formatdate("YYYY-MM-DD", timestamp())
   }
 }
 #RDS instance
@@ -69,7 +69,7 @@ resource "aws_db_instance" "intern_kowsalya_rds" {
   username            = var.db_username
   password            = var.db_password
   db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
-  vpc_security_group_ids = [aws_security_group.intern_rds.id]
+  vpc_security_group_ids = [aws_security_group.RDS_security_group.id]
 
   multi_az           = true 
   publicly_accessible = false
@@ -81,6 +81,6 @@ resource "aws_db_instance" "intern_kowsalya_rds" {
     Project     = "Terraform-RDS"
     Owner       = "Kowsalya"
     Purpose     = "RDS in Private Subnet"
-    Created_On  = "March-11"
+    Created_On  = formatdate("YYYY-MM-DD", timestamp())
   }
 }

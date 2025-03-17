@@ -1,14 +1,14 @@
 #Security_group Creation
-resource "aws_security_group" "intern_sg" {
+resource "aws_security_group" "intern_security_group" {
   name        = "Intern-west-Security-Group"
   description = "Allow inbound traffic on port 22"
-  vpc_id = var.intern_vpc_id
+  vpc_id = var.vpc_id
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["106.222.197.92/32"] #My IP
+    cidr_blocks = [var.my_ip]
   }
   
   egress {
@@ -22,8 +22,8 @@ resource "aws_security_group" "intern_sg" {
     Name        = "Intern-West-Security-Group"
     Project     = "Terraform-Task"
     Owner       = "Kowsalya"
-    Purpose     = "Security Group Created for Task"
-    Created_On  = "March-10"
+    Purpose     = "Security Group Created for EC2 in public subnet 1"
+    Created_On  = formatdate("YYYY-MM-DD", timestamp())
 
   }
 }
@@ -33,8 +33,8 @@ resource "aws_instance" "ec2inPublic" {
     ami = var.ami
     instance_type = var.instance_type
     key_name = var.key_pair
-    subnet_id = var.subnet_id
-    vpc_security_group_ids  = [aws_security_group.intern_sg.id]
+    subnet_id = var.public_subnet_id
+    vpc_security_group_ids  = [aws_security_group.intern_security_group.id]
 
     root_block_device {
         volume_size           = 8
@@ -48,15 +48,11 @@ resource "aws_instance" "ec2inPublic" {
         Project     = "Terraform-Task"
         Owner       = "Kowsalya"
         Purpose     = "Creating instance inside Public Subnet as instructed"
-        Created_On  = "March-11"
+        Created_On  = formatdate("YYYY-MM-DD", timestamp())
     }
-
-    lifecycle {
-        ignore_changes = [iam_instance_profile]
-    }
-    
 }
+#Created EIP for ec2 manually and added here
 resource "aws_eip_association" "eip_attach" {
   instance_id   = aws_instance.ec2inPublic.id
-  allocation_id = "eipalloc-00f0115b601e756e5"  
+  allocation_id = var.epi_allocation_id
 } 

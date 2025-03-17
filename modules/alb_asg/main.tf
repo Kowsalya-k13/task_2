@@ -23,13 +23,13 @@ resource "aws_security_group" "alb_security_group" {
     Project     = "Terraform-Task"
     Owner       = "Kowsalya"
     Purpose     = "Security Group Created for ALB"
-    Created_On  = "March-13"
+    Created_On  = formatdate("YYYY-MM-DD", timestamp())
 
   }
 }
 
 # Security Group for ASG EC2 instances
-resource "aws_security_group" "instances_sg" {
+resource "aws_security_group" "ec2_instance_security_group" {
   name        = "instances-security-group"
   description = "To allow traffic only from ALB"
   vpc_id      = var.vpc_id
@@ -47,10 +47,18 @@ resource "aws_security_group" "instances_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+    tags = {
+    Name        = "kowsalya-ASG-ec2-security-group"
+    Project     = "Terraform-Task"
+    Owner       = "Kowsalya"
+    Purpose     = "Security Group Created for ASG EC2s"
+    Created_On  = formatdate("YYYY-MM-DD", timestamp())
+  }
 }
 
 #Target Group for ALB
-resource "aws_lb_target_group" "asg_tg" {
+resource "aws_lb_target_group" "auto_scalling_target_group" {
   name     = "kowsalya-asg-target-group"
   port     = 80
   protocol = "HTTP"
@@ -68,46 +76,46 @@ resource "aws_lb_target_group" "asg_tg" {
     Project     = "Terraform-Task"
     Owner       = "Kowsalya"
     Purpose     = "Target Group Created for ALB"
-    Created_On  = "March-13"
+    Created_On  =  formatdate("YYYY-MM-DD", timestamp())
 
   }
 }
 # ALB
-resource "aws_lb" "alb" {
+resource "aws_lb" "application_load_balancer" {
   name               = "kowsalya-load-balancer"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_security_group.id]
-  subnets            = [var.public_subnet_1, var.public_subnet_2] 
+  subnets            = [var.public_subnet_id, var.public_subnet_2_id] 
 
   tags = {
     Name        = "kowsalya-load-balancer"
     Project     = "Terraform-Task"
     Owner       = "Kowsalya"
     Purpose     = "Created ALB for the task"
-    Created_On  = "March-13"
+    Created_On  = formatdate("YYYY-MM-DD", timestamp())
   }
 }
 
 
 #ALB Listeners
-resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.alb.arn
+resource "aws_lb_listener" "http_listeners" {
+  load_balancer_arn = aws_lb.application_load_balancer.arn
   port              = 80
   protocol          = "HTTP"
   default_action {
-    type             = "forward"  #to target groups and I have mentioned tg
-    target_group_arn = aws_lb_target_group.asg_tg.arn
+    type             = "forward"  #to target groups and I have mentioned in ASG target groups
+    target_group_arn = aws_lb_target_group.auto_scalling_target_group.arn
   }
 }
 
 #Launch Template
-resource "aws_launch_template" "kowsalya-asg-template" { 
+resource "aws_launch_template" "asg-template" { 
     name          = "kowsalya-asg-launch-template"
     image_id      = var.ami
     instance_type = "t3.medium"
     network_interfaces {
-        security_groups             = [aws_security_group.instances_sg.id]
+        security_groups             = [aws_security_group.ec2_instance_security_group.id]
         associate_public_ip_address = true
     }
 
@@ -121,43 +129,42 @@ resource "aws_launch_template" "kowsalya-asg-template" {
         Project     = "Terraform-Task"
         Owner       = "Kowsalya"
         Purpose     = "Created ASG Launch template"
-        Created_On  = "March-13"
+        Created_On  = formatdate("YYYY-MM-DD", timestamp())
     }
 
 }
 
 #Auto Scaling Group
-resource "aws_autoscaling_group" "asg" {
+resource "aws_autoscaling_group" "autoscaling_group" {
   name = "kowsalya-asg"  
   desired_capacity     = 2
   min_size            = 1
   max_size            = 3
   
-  vpc_zone_identifier = ["subnet-08cb7ba68adfcb996", "subnet-033c898124610d218"] #private subnets
+  vpc_zone_identifier = [var.private_subnet_id, var.private_subnet_2_RDS ] #private subnets
 
   launch_template {
-    id      = aws_launch_template.kowsalya-asg-template.id
+    id      = aws_launch_template.asg-template.id
     version = "$Latest"
   }
 
-  target_group_arns = [aws_lb_target_group.asg_tg.arn]
+  target_group_arns = [aws_lb_target_group.auto_scalling_target_group.arn]
   health_check_type = "EC2"
-  
 }
 #Policies for scalling up and scalling down 
-resource "aws_autoscaling_policy" "kowsalya_scale_up" {
+resource "aws_autoscaling_policy" "ec2_scale_up" {
   name                   = "kowsalya-scale-up-policy"
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
-  cooldown              = 300
-  autoscaling_group_name = aws_autoscaling_group.asg.id
+  cooldown              = 300  #seconds
+  autoscaling_group_name = aws_autoscaling_group.autoscaling_group.id
 }
-resource "aws_autoscaling_policy" "kowsalya_scale_down" {
+resource "aws_autoscaling_policy" "ec2_scale_down" {
   name                   = "kowsalya-scale-down-policy"
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
-  cooldown              = 300
-  autoscaling_group_name = aws_autoscaling_group.asg.name
+  cooldown              = 300  #seconds
+  autoscaling_group_name = aws_autoscaling_group.autoscaling_group.name
 }
 
 #Cloud Watch Alarm for >70% CPU 
@@ -167,17 +174,17 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_alarm" {
   evaluation_periods  = 2
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = 60
+  period              = 60 #seconds
   statistic           = "Average"
-  threshold           = 70
+  threshold           = 70 #cpu utilization %
   alarm_description   = "Monitors and Scale up when CPU utilization exceeds 70%"
   actions_enabled     = true
 
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.asg.name
+    AutoScalingGroupName = aws_autoscaling_group.autoscaling_group.name
   }
 
-  alarm_actions = [aws_autoscaling_policy.kowsalya_scale_up.arn]
+  alarm_actions = [aws_autoscaling_policy.ec2_scale_up.arn]
 }
 #Cloud Watch Alarm for <30% CPU 
 resource "aws_cloudwatch_metric_alarm" "scale_down_alarm" {
@@ -186,35 +193,31 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_alarm" {
   evaluation_periods  = 2
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = 60
+  period              = 60 #seconds
   statistic           = "Average"
-  threshold           = 30
+  threshold           = 30 #cpu utilization %
   alarm_description   = "Monitors and Scale down when CPU utilization is below 30%"
   actions_enabled     = true
 
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.asg.name
+    AutoScalingGroupName = aws_autoscaling_group.autoscaling_group.name
   }
 
-  alarm_actions = [aws_autoscaling_policy.kowsalya_scale_down.arn]
+  alarm_actions = [aws_autoscaling_policy.ec2_scale_down.arn]
 }
 
 #SNS Alerts
-resource "aws_sns_topic" "kowsalya_alerts" {
+resource "aws_sns_topic" "ec2_alerts" {
   name = "kowsalya-alerts"
 }
 #For email alerts
-resource "aws_sns_topic_subscription" "notify_1" {
-  topic_arn = aws_sns_topic.kowsalya_alerts.arn
-  protocol  = "email"
-  endpoint  = "kowsalya.kumar@batonsystems.com"  
+resource "aws_sns_topic_subscription" "email_subscriptions" {
+  count = length(var.email_ids)
+  topic_arn = aws_sns_topic.ec2_alerts.arn
+  protocol = "email"
+  endpoint = var.email_ids[count.index]
 }
 
-resource "aws_sns_topic_subscription" "notify_2" {
-  topic_arn = aws_sns_topic.kowsalya_alerts.arn
-  protocol  = "email"
-  endpoint  = "durga.sathyanps@batonsystems.com"  
-}
 # SNS to CloudWatch Alarms
 resource "aws_cloudwatch_metric_alarm" "cpu_alert_alarm" {
   alarm_name          = "cpu-utilization-alert"
@@ -222,18 +225,19 @@ resource "aws_cloudwatch_metric_alarm" "cpu_alert_alarm" {
   evaluation_periods  = 2
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = 60
+  period              = 60 #seconds
   statistic           = "Average"
-  threshold           = 70
+  threshold           = 70 #cpu utilization %
   alarm_description   = "Trigger SNS alert if CPU exceeds 70%"
   actions_enabled     = true
 
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.asg.name
+    AutoScalingGroupName = aws_autoscaling_group.autoscaling_group.name
   }
 
-  alarm_actions = [aws_sns_topic.kowsalya_alerts.arn]
+  alarm_actions = [aws_sns_topic.ec2_alerts.arn]
 }
+
 
 
 
