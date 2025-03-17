@@ -3,11 +3,21 @@ variable "cidr_block" {
   default = "12.0.0.0/16"
 }
 
-variable "public_cidr" {
+variable "public_cidr_1" {
   type = string
   default = "12.0.6.0/24"
+}
+
+variable "public_cidr_2" {
+  type = string
+  default = "12.0.9.0/24"
 }
 variable "private_cidr" {
   type = string
   default = "12.0.8.0/24"
+}
+
+variable "az_for_public_subnet_2" {
+  type = string
+  default = "us-west-2a" 
 }
